@@ -2,22 +2,22 @@
 
 Aplicacao Java de terminal para cadastro de veiculos, entrada, saida, cobranca, listagem de estacionados e historico de movimentacoes.
 
+## Entrega
+
+- Codigo-fonte: `src`
+- Script SQL do banco: `sql/schema.sql`
+- Relatorio: `RELATORIO.md`
+
 ## Requisitos
 
 - Java 17 ou superior
+- SQLite opcional para conferir o script SQL
 
 ## Rodar
 
 ```bash
 javac -d out $(find src/main/java -name "*.java")
 java -cp out br.com.estacionamento.app.Main
-```
-
-## Testar
-
-```bash
-javac -d out $(find src/main/java src/test/java -name "*.java")
-java -cp out br.com.estacionamento.EstacionamentoTest
 ```
 
 ## Uso
