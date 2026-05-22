@@ -13,6 +13,10 @@ public final class Movimentacao {
     private BigDecimal valorPago;
 
     public Movimentacao(int id, Veiculo veiculo, Vaga vaga, LocalDateTime dataEntrada) {
+        this(id, veiculo, vaga, dataEntrada, null, null);
+    }
+
+    public Movimentacao(int id, Veiculo veiculo, Vaga vaga, LocalDateTime dataEntrada, LocalDateTime dataSaida, BigDecimal valorPago) {
         if (id <= 0) {
             throw new IllegalArgumentException("Id da movimentacao deve ser positivo.");
         }
@@ -29,10 +33,24 @@ public final class Movimentacao {
             throw new IllegalArgumentException("Data de entrada e obrigatoria.");
         }
 
+        if (dataSaida == null && valorPago != null) {
+            throw new IllegalArgumentException("Valor pago exige data de saida.");
+        }
+
+        if (dataSaida != null && valorPago == null) {
+            throw new IllegalArgumentException("Data de saida exige valor pago.");
+        }
+
+        if (dataSaida != null && dataSaida.isBefore(dataEntrada)) {
+            throw new IllegalArgumentException("Data de saida nao pode ser anterior a entrada.");
+        }
+
         this.id = id;
         this.veiculo = veiculo;
         this.vaga = vaga;
         this.dataEntrada = dataEntrada;
+        this.dataSaida = dataSaida;
+        this.valorPago = valorPago;
     }
 
     public int getId() {

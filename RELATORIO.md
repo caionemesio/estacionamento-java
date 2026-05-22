@@ -2,7 +2,7 @@
 
 ## Objetivo
 
-O sistema foi desenvolvido em Java para controlar a entrada e saida de veiculos em um estacionamento. A aplicacao permite cadastrar veiculos, registrar entrada, registrar saida com calculo do valor a pagar, listar veiculos estacionados e consultar o historico de movimentacoes.
+O sistema foi desenvolvido em Java para controlar a entrada e saida de veiculos em um estacionamento. A aplicacao permite cadastrar veiculos, registrar entrada, registrar saida com calculo do valor a pagar, listar veiculos estacionados e consultar o historico de movimentacoes. Os dados sao gravados em um banco local SQLite.
 
 ## Classes usadas
 
@@ -38,6 +38,14 @@ Classe que representa uma entrada e uma possivel saida de veiculo. Guarda o veic
 
 Classe de servico que concentra as regras do sistema. Ela cadastra veiculos, registra entradas e saidas, lista veiculos estacionados e mostra o historico. Tambem impede placa duplicada, entrada duplicada, uso de vaga ocupada, saida sem entrada e saida de veiculo que nao esta estacionado.
 
+### EstacionamentoRepository
+
+Interface que define as operacoes de persistencia usadas pelo sistema. Ela permite salvar veiculos, entradas e saidas sem prender a regra de negocio a uma tecnologia especifica.
+
+### SqliteEstacionamentoRepository
+
+Classe responsavel por gravar e carregar os dados no banco SQLite. Ela cria as tabelas quando necessario, carrega os registros salvos e atualiza as tabelas durante cadastro, entrada e saida.
+
 ### Tarifa
 
 Classe responsavel pelas regras de cobranca. A primeira hora custa R$ 5,00 e cada hora adicional custa R$ 3,00. O valor final e ajustado de acordo com o tipo de veiculo por meio do metodo polimorfico de cada classe filha de `Veiculo`.
@@ -66,7 +74,7 @@ Tabela que armazena o historico de entradas e saidas. Possui id, veiculo_id, vag
 
 ## Banco de dados
 
-O banco escolhido para a entrega foi SQLite, por ser simples, local e nao exigir servidor. O script `sql/schema.sql` cria as tabelas sugeridas no enunciado, define chaves primarias, chaves estrangeiras, restricoes de tipo e indices para impedir que um mesmo veiculo ou uma mesma vaga tenha mais de uma movimentacao aberta ao mesmo tempo.
+O banco escolhido para a entrega foi SQLite, por ser simples, local e nao exigir servidor. O script `sql/schema.sql` cria as tabelas sugeridas no enunciado, define chaves primarias, chaves estrangeiras, restricoes de tipo e indices para impedir que um mesmo veiculo ou uma mesma vaga tenha mais de uma movimentacao aberta ao mesmo tempo. Ao executar a aplicacao, o arquivo `estacionamento.db` e criado na raiz do projeto e passa a guardar os dados cadastrados.
 
 ## Regras implementadas
 

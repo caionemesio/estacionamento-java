@@ -2,14 +2,19 @@ package br.com.estacionamento;
 
 import br.com.estacionamento.model.Movimentacao;
 import br.com.estacionamento.model.TipoVeiculo;
+import br.com.estacionamento.repository.SqliteEstacionamentoRepository;
 import br.com.estacionamento.service.Estacionamento;
+import java.io.IOException;
 import java.math.BigDecimal;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.LocalDateTime;
 
 public final class EstacionamentoTest {
     public static void main(String[] args) {
         deveCalcularValoresPorTipo();
         deveImpedirOperacoesInvalidas();
+        devePersistirNoSqlite();
         System.out.println("Todos os testes passaram.");
     }
 
@@ -55,10 +60,45 @@ public final class EstacionamentoTest {
         assertThrows(() -> estacionamento.registrarSaida("AAA-1111", inicio.plusHours(2)));
     }
 
+    private static void devePersistirNoSqlite() {
+        Path banco = Path.of(System.getProperty("java.io.tmpdir"), "estacionamento_teste_" + System.nanoTime() + ".db");
+
+        try {
+            SqliteEstacionamentoRepository repository = new SqliteEstacionamentoRepository(banco);
+            repository.inicializar(2);
+            Estacionamento estacionamento = repository.carregarEstacionamento();
+            LocalDateTime inicio = LocalDateTime.of(2026, 5, 22, 8, 0);
+
+            estacionamento.cadastrarVeiculo("SQL-1234", "Civic", "Cinza", TipoVeiculo.CARRO);
+            estacionamento.registrarEntrada("SQL-1234", 1, inicio);
+            estacionamento.registrarSaida("SQL-1234", inicio.plusHours(1).plusMinutes(10));
+
+            Estacionamento recarregado = repository.carregarEstacionamento();
+            Movimentacao movimentacao = recarregado.listarHistorico().get(0);
+
+            assertEquals(1, recarregado.listarHistorico().size());
+            assertEquals(0, recarregado.listarEstacionados().size());
+            assertEquals("SQL-1234", movimentacao.getVeiculo().getPlaca());
+            assertBigDecimal("8.00", movimentacao.getValorPago());
+        } finally {
+            try {
+                Files.deleteIfExists(banco);
+            } catch (IOException erro) {
+                throw new IllegalStateException("Nao foi possivel apagar banco temporario.", erro);
+            }
+        }
+    }
+
     private static void assertBigDecimal(String esperado, BigDecimal recebido) {
         BigDecimal valorEsperado = new BigDecimal(esperado);
 
         if (valorEsperado.compareTo(recebido) != 0) {
+            throw new AssertionError("Esperado " + esperado + ", recebido " + recebido);
+        }
+    }
+
+    private static void assertEquals(Object esperado, Object recebido) {
+        if (!esperado.equals(recebido)) {
             throw new AssertionError("Esperado " + esperado + ", recebido " + recebido);
         }
     }

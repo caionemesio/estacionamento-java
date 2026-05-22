@@ -19,16 +19,50 @@ public final class Estacionamento {
     private final Map<String, Veiculo> veiculosPorPlaca = new LinkedHashMap<>();
     private final Map<Integer, Vaga> vagasPorNumero = new LinkedHashMap<>();
     private final List<Movimentacao> movimentacoes = new ArrayList<>();
+    private final EstacionamentoRepository repository;
     private int proximoVeiculoId = 1;
     private int proximaMovimentacaoId = 1;
 
     public Estacionamento(int quantidadeVagas) {
+        this(quantidadeVagas, null);
+    }
+
+    public Estacionamento(int quantidadeVagas, EstacionamentoRepository repository) {
         if (quantidadeVagas <= 0) {
             throw new IllegalArgumentException("Quantidade de vagas deve ser positiva.");
         }
 
+        this.repository = repository;
+
         for (int numero = 1; numero <= quantidadeVagas; numero++) {
             vagasPorNumero.put(numero, new Vaga(numero, numero));
+        }
+    }
+
+    public Estacionamento(Collection<Vaga> vagas, Collection<Veiculo> veiculos, Collection<Movimentacao> movimentacoes, EstacionamentoRepository repository) {
+        if (vagas == null || vagas.isEmpty()) {
+            throw new IllegalArgumentException("O estacionamento precisa ter vagas.");
+        }
+
+        this.repository = repository;
+
+        for (Vaga vaga : vagas) {
+            vagasPorNumero.put(vaga.getNumero(), vaga);
+        }
+
+        if (veiculos != null) {
+            for (Veiculo veiculo : veiculos) {
+                veiculosPorPlaca.put(veiculo.getPlaca(), veiculo);
+                proximoVeiculoId = Math.max(proximoVeiculoId, veiculo.getId() + 1);
+            }
+        }
+
+        if (movimentacoes != null) {
+            this.movimentacoes.addAll(movimentacoes);
+
+            for (Movimentacao movimentacao : movimentacoes) {
+                proximaMovimentacaoId = Math.max(proximaMovimentacaoId, movimentacao.getId() + 1);
+            }
         }
     }
 
@@ -44,6 +78,7 @@ public final class Estacionamento {
         }
 
         Veiculo veiculo = criarVeiculo(proximoVeiculoId++, placaNormalizada, modelo, cor, tipo);
+        salvarVeiculo(veiculo);
         veiculosPorPlaca.put(veiculo.getPlaca(), veiculo);
         return veiculo;
     }
@@ -66,6 +101,12 @@ public final class Estacionamento {
 
         vaga.ocupar();
         Movimentacao movimentacao = new Movimentacao(proximaMovimentacaoId++, veiculo, vaga, dataEntrada);
+        try {
+            salvarEntrada(movimentacao);
+        } catch (RuntimeException erro) {
+            vaga.liberar();
+            throw erro;
+        }
         movimentacoes.add(movimentacao);
         return movimentacao;
     }
@@ -81,6 +122,7 @@ public final class Estacionamento {
 
         movimentacao.registrarSaida(dataSaida);
         movimentacao.getVaga().liberar();
+        salvarSaida(movimentacao);
         return movimentacao;
     }
 
@@ -136,5 +178,23 @@ public final class Estacionamento {
             .filter(Movimentacao::estaAberta)
             .filter(movimentacao -> movimentacao.getVeiculo().getPlaca().equals(placa))
             .findFirst();
+    }
+
+    private void salvarVeiculo(Veiculo veiculo) {
+        if (repository != null) {
+            repository.salvarVeiculo(veiculo);
+        }
+    }
+
+    private void salvarEntrada(Movimentacao movimentacao) {
+        if (repository != null) {
+            repository.salvarEntrada(movimentacao);
+        }
+    }
+
+    private void salvarSaida(Movimentacao movimentacao) {
+        if (repository != null) {
+            repository.salvarSaida(movimentacao);
+        }
     }
 }

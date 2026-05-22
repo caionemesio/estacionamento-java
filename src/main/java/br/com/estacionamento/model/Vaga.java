@@ -6,6 +6,10 @@ public final class Vaga {
     private boolean ocupada;
 
     public Vaga(int id, int numero) {
+        this(id, numero, false);
+    }
+
+    public Vaga(int id, int numero, boolean ocupada) {
         if (id <= 0) {
             throw new IllegalArgumentException("Id da vaga deve ser positivo.");
         }
@@ -16,6 +20,7 @@ public final class Vaga {
 
         this.id = id;
         this.numero = numero;
+        this.ocupada = ocupada;
     }
 
     public int getId() {

@@ -4,13 +4,16 @@ import br.com.estacionamento.model.Movimentacao;
 import br.com.estacionamento.model.TipoVeiculo;
 import br.com.estacionamento.model.Vaga;
 import br.com.estacionamento.model.Veiculo;
+import br.com.estacionamento.repository.SqliteEstacionamentoRepository;
 import br.com.estacionamento.service.Estacionamento;
+import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.Collection;
 import java.util.Scanner;
 
 public final class Main {
+    private static final Path DATABASE_PATH = Path.of("estacionamento.db");
     private final Scanner scanner = new Scanner(System.in);
     private Estacionamento estacionamento;
 
@@ -19,7 +22,11 @@ public final class Main {
     }
 
     private void executar() {
-        estacionamento = new Estacionamento(lerQuantidadeVagas());
+        SqliteEstacionamentoRepository repository = new SqliteEstacionamentoRepository(DATABASE_PATH);
+        repository.inicializar(lerQuantidadeVagas());
+        estacionamento = repository.carregarEstacionamento();
+        System.out.println("Banco de dados: " + DATABASE_PATH.toAbsolutePath());
+        System.out.println();
 
         int opcao;
 
